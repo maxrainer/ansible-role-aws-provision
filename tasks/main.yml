@@ -5,12 +5,13 @@
     ec2_pem_key_name: "{{ pem_key_name | default(omit) }}"
     ec2_pem_key_location: "{{ pem_key_location | default(omit) }}"
   when: pem_key_name is defined and pem_key_location is defined
+  tags: [always]
 
 - name: set up AWS VPC
   include_tasks: 
     file: vpc.yml
   when: ec2_feature_vpc
-  tags: [always, vpc]
+  tags: [install, vpc]
 
 - name: set up Linux Server 
   include_tasks:
@@ -22,7 +23,7 @@
   loop_control: 
     loop_var: _instance
     index_var: idx
-  tags: [always, server]
+  tags: [install, server]
 
 - name: set up Routers
   include_tasks: 
@@ -32,7 +33,7 @@
   loop_control:
     loop_var: _instance_router
     index_var: idx
-  tags: [always, router]
+  tags: [install, router]
 
 - name: set up Firewalls 
   include_tasks:
@@ -42,11 +43,11 @@
   loop_control:
     loop_var: _instance_firewall
     index_var: idx
-  tags: [always, firewall]
+  tags: [install, firewall]
 
 - include_tasks:
     file: teardown.yml
-  tags: [never, teardown]
+  tags: [teardown]
 
 # - include_tasks:
 #     file: output.yml
