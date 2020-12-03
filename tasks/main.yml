@@ -47,7 +47,7 @@
 
 - include_tasks:
     file: teardown.yml
-  tags: [teardown]
+  tags: [never, teardown]
 
 # - include_tasks:
 #     file: output.yml
