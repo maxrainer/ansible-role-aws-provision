@@ -1,0 +1,20 @@
+---
+# meta linux provisioner
+
+- name: set ec2_instance variable
+  set_fact:
+    _instance_type: "{{ ec2_instance_types[_instance.instance_type] }}"
+  tags: [always]
+
+- name: find EC2 ami 
+  include_tasks: "{{ role_path }}/includes/ami.yml"
+
+- name: create security group
+  include_tasks: 
+    file: "{{ role_path }}/includes/security_group.yml"
+  tags: [always]
+
+- name: create EC2 instance with single network
+  include_tasks:
+    file: "{{ role_path }}/includes/instance_singlenet.yml"
+  tags: [always]

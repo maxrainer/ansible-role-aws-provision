@@ -1,0 +1,53 @@
+---
+
+- name: take variables from shared vars
+  set_fact: 
+    ec2_pem_key_name: "{{ pem_key_name | default(omit) }}"
+    ec2_pem_key_location: "{{ pem_key_location | default(omit) }}"
+  when: pem_key_name is defined and pem_key_location is defined
+
+- name: set up AWS VPC
+  include_tasks: 
+    file: vpc.yml
+  when: ec2_feature_vpc
+  tags: [always, vpc]
+
+- name: set up Linux Server 
+  include_tasks:
+    file: linux.yml
+    apply: 
+      tags: linux
+  when: ec2_feature_server
+  loop: "{{ ec2_linux_server }}"
+  loop_control: 
+    loop_var: _instance
+    index_var: idx
+  tags: [always, server]
+
+- name: set up Routers
+  include_tasks: 
+    file: router.yml
+  when: ec2_feature_router
+  loop: "{{ ec2_routers }}"
+  loop_control:
+    loop_var: _instance_router
+    index_var: idx
+  tags: [always, router]
+
+- name: set up Firewalls 
+  include_tasks:
+    file: firewall.yml
+  when: ec2_feature_firewall
+  loop: "{{ ec2_firewalls }}"
+  loop_control:
+    loop_var: _instance_firewall
+    index_var: idx
+  tags: [always, firewall]
+
+- include_tasks:
+    file: teardown.yml
+  tags: [never, teardown]
+
+# - include_tasks:
+#     file: output.yml
+#   tags: [always]

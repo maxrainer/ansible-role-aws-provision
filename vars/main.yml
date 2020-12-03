@@ -1,0 +1,144 @@
+---
+
+# ec2_instances: []
+ec2_subnet_ids: [] 
+ec2_results: []
+
+__default_size: t2.nano
+__default_function: server
+__default_security_rule: 
+  - "{{ ec2_sg.ssh }}"
+  
+ec2_instance_types:
+  rt_cisco_csr:
+    version: 17.1
+    owners: 679593333241
+    size: t2.medium
+    filter: "CSR_AMI-cppbuild.17.1.1-byol-624f5bb1*"
+    os: ios
+    user: ec2-user
+
+  fw_palo:
+    version: 9.1
+    owners: 679593333241
+    size: m5.xlarge
+    filter: "PA-VM-AWS-9.1.0-h3-7064e142*"
+    os: panos
+    user: admin
+  
+  fw_fortigate:
+    version: 6.09
+    owners: 679593333241
+    filter: "FortiGate-VM64-AWS build0335 (6.0.9) GA-e5936f4a-0d69-479f-919c-d5e158bd4d12*"
+    size: t2.small
+    os: fortigate
+    user: admin
+
+  fw_junos_vsrx:
+    version: 19.3
+    owners: 679593333241
+    filter: "junos-vsrx3-x86-64-19.3R2.9-4d1495fd-4d1f-48d0-9ec6-b67794a58765*"
+    size: c5.large
+    os: junos
+    user: root
+
+  rt_junos_vmx:
+    version: 19.4
+    owners: 679593333241
+    size: m4.xlarge
+    filter: "vmx-nested-19.4R1.9-c8e2662f-22aa*"
+    os: junos
+    user: jnpr
+
+  ubuntu:
+    version: 18.04
+    owners: 679593333241
+    filter: "*ubuntu-bionic-18.04-amd64-server-20191113*"
+    user: ubuntu
+    os: linux
+
+  rhel8: 
+    version: 8.1
+    owners: 309956199498
+    filter: "RHEL-8.1.0_HVM-20191029-x86_64-0*"
+    user: ec2-user
+    os: linux
+
+  rhel7:
+    version: 7.7
+    owners: 309956199498
+    filter: "RHEL-7.7_HVM-20191119-x86_64-2*"
+    user: ec2-user
+    os: linux
+  
+  centos7:
+    owners: 679593333241
+    filter: "CentOS Linux 7 x86_64 HVM EBS ENA 1901_01-b7ee8a69-ee97-4a49-9e68-afaee216db2e-ami-05713873c6794f575*" 
+    user: centos
+    os: linux
+  
+  f5: 
+    owners: 679593333241
+    size: t2.medium
+    filter: "F5 BIGIP-15.0.1.1-0.0.3 BYOL-All Modules 1Boot Loc-191118135625-0d93696e*"
+    user: admin
+    os: f5
+
+ec2_linux_server_tower:
+  name: Ansible Tower 1
+  short: tower
+  tag_function: tower
+  tag_name: ansible-tower1
+  instance_type: rhel8
+  size: t2.medium
+  public_ip: yes
+  volumes:
+    - device_name: /dev/sda1
+      volume_type: standard
+      delete_on_termination: true
+      volume_size: 20
+  security_groups:
+    - "{{ ec2_sg.ssh }}"
+    - "{{ ec2_sg.https }}"
+  network: 0
+
+ec2_linux_server_bastion:
+  name: Bastion Server 1
+  short: bastion
+  tag_function: bastion
+  tag_name: linux-bastion1
+  instance_type: centos7
+  size: t2.micro
+  public_ip: yes
+  security_groups:
+    - "{{ ec2_sg.ssh }}"
+    - "{{ ec2_sg.https }}"
+    - "{{ ec2_sg.http }}"
+  network: 0
+
+ec2_sg:
+  ssh:
+    proto: tcp
+    cidr_ip: 0.0.0.0/0
+    to_port: 22
+    from_port: 22
+  https: 
+    proto: tcp
+    cidr_ip: 0.0.0.0/0
+    to_port: 443
+    from_port: 443
+  http: 
+    proto: tcp
+    cidr_ip: 0.0.0.0/0
+    to_port: 80
+    from_port: 80
+  all: 
+    proto: all 
+    cidr_ip: 0.0.0.0/0
+
+__tags: 
+  Name: "{{ _instance.tag_name | default(_instance.short) }}"
+  Demo: "{{ ec2_name_prefix }}"
+  Function: "{{ _instance.tag_function | default(__default_function) }}"
+  OS: "{{ _instance.tag_os | default(_instance_type.os) }}"
+  LabCount: "{{ ec2_lab_count | default(0) }}"
